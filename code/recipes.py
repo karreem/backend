@@ -2425,7 +2425,15 @@ class Recipe(Configured):
         if True:
             self.select_columns(df=df)
             for col in list(self.cols):
-                df[col] = df[col].str.normalize('NFKD').str.encode('ASCII',errors='ignore').str.decode('ASCII')
+                df[col] = np.where(
+                    type(df[col]) == str,
+                    df[col].str.normalize('NFKD').astype(str).str.encode('ASCII','ignore').str.decode('ASCII'),
+                    np.where(
+                        type(df[col]) == list,
+                        df[col].apply(lambda l: [unicodedata.normalize('NFKD',s).encode('ASCII','ignore').decode('ASCII') for s in l]),
+                        df[col]
+                        )
+                    )
             return df
         else:
             return df
